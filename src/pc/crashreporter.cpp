@@ -334,6 +334,14 @@ static void NotifyUser() {
 #endif
 }
 
+#if defined(RC_PLATFORM_MACOS)
+#define RC_CRASH_REPORT_PLATFORM "macOS arm64"
+#elif defined(__aarch64__)
+#define RC_CRASH_REPORT_PLATFORM "Linux aarch64"
+#else
+#define RC_CRASH_REPORT_PLATFORM "Linux x86_64"
+#endif
+
 static void FatalSignalHandler(int signalNumber, siginfo_t* signalInfo, void*) {
     if (s_handlingCrash) {
         _exit(128 + signalNumber);
@@ -354,13 +362,14 @@ static void FatalSignalHandler(int signalNumber, siginfo_t* signalInfo, void*) {
                       "ReChan crash report\n"
                       "===================\n"
                       "Version: %s\n"
-                      "Platform: Linux x86_64\n"
+                      "Platform: %s\n"
                       "Process ID: %ld\n"
                       "Signal: %s (%d)\n"
                       "Signal code: %d\n"
                       "Fault address: %p\n\n"
                       "Native stack trace:\n",
-                      GAME_VERSION, static_cast<long>(getpid()), SignalName(signalNumber),
+                      GAME_VERSION, RC_CRASH_REPORT_PLATFORM,
+                      static_cast<long>(getpid()), SignalName(signalNumber),
                       signalNumber, signalInfo ? signalInfo->si_code : 0,
                       signalInfo ? signalInfo->si_addr : nullptr);
         WriteFd(report, buffer);
@@ -369,10 +378,12 @@ static void FatalSignalHandler(int signalNumber, siginfo_t* signalInfo, void*) {
         const int frameCount = backtrace(frames, 64);
         backtrace_symbols_fd(frames, frameCount, report);
 
+#if !defined(RC_PLATFORM_MACOS)
         WriteFd(report, "\nProcess memory map:\n");
         AppendFileToFd(report, "/proc/self/maps");
         WriteFd(report, "\nOperating system:\n");
         AppendFileToFd(report, "/etc/os-release");
+#endif
         WriteFd(report,
                 "\nPlease open an issue at:\n"
                 "https://github.com/SilverwireGames/ReChan/issues/new\n"

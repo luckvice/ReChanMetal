@@ -25,3 +25,27 @@ switch/**/*.map
 switch/**/*.lst
 switch/**/build_log.txt
 switch/libp3d/lib/
+
+# Vision Master workflow / local agent tooling (do not commit)
+.visionmaster/
+docs/visionmaster/
+docs/branding/
+.agents/
+.claude/
+.opencode/
+agents/
+skills/
+providers/
+gui/
+manifest.json
+opencode.json
+opencode.jsonc
+AGENTS.md
+CLAUDE.md
+PROMPT-INSTALACAO.md
+package.json
+package-lock.json
+scripts/visionmaster-workflow.mjs
+scripts/greetings.mjs
+scripts/update.mjs
+scripts/runtime/

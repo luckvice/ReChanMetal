@@ -43,6 +43,9 @@ project "libp3d"
         libp3d_root .. "/pddi/gles/**.cpp",
         libp3d_root .. "/pddi/null/**.h",
         libp3d_root .. "/pddi/null/**.cpp",
+        libp3d_root .. "/pddi/metal/**.h",
+        libp3d_root .. "/pddi/metal/**.cpp",
+        libp3d_root .. "/pddi/metal/**.mm",
     }
 
     includedirs {
@@ -149,10 +152,54 @@ project "libp3d"
             "SDL_MAIN_HANDLED",
         }
 
+    filter "system:macosx"
+        architecture "arm64"
+        files {
+            -- GLFW Cocoa backend (see vendor/glfw/src/CMakeLists.txt).
+            libp3d_root .. "/vendor/glfw/src/cocoa_time.c",
+            libp3d_root .. "/vendor/glfw/src/posix_module.c",
+            libp3d_root .. "/vendor/glfw/src/posix_thread.c",
+            libp3d_root .. "/vendor/glfw/src/cocoa_init.m",
+            libp3d_root .. "/vendor/glfw/src/cocoa_joystick.m",
+            libp3d_root .. "/vendor/glfw/src/cocoa_monitor.m",
+            libp3d_root .. "/vendor/glfw/src/cocoa_window.m",
+            libp3d_root .. "/vendor/glfw/src/nsgl_context.m",
+            libp3d_root .. "/vendor/glfw/src/egl_context.c",
+            libp3d_root .. "/vendor/glfw/src/osmesa_context.c",
+
+            -- Metal backend.
+            libp3d_root .. "/pddi/metal/**.h",
+            libp3d_root .. "/pddi/metal/**.cpp",
+            libp3d_root .. "/pddi/metal/**.mm",
+
+            -- ImGui Metal backend.
+            libp3d_root .. "/vendor/imgui/backends/imgui_impl_metal.mm",
+        }
+        removefiles {
+            libp3d_root .. "/pddi/gl/**.h",
+            libp3d_root .. "/pddi/gl/**.cpp",
+        }
+        defines {
+            "_GLFW_COCOA",
+        }
+        links {
+            "Cocoa.framework",
+            "IOKit.framework",
+            "CoreFoundation.framework",
+            "CoreVideo.framework",
+            "CoreGraphics.framework",
+            "QuartzCore.framework",
+            "Metal.framework",
+            "OpenGL.framework",
+        }
+
     filter "configurations:Headless"
         removefiles {
             libp3d_root .. "/pddi/gl/**.h",
             libp3d_root .. "/pddi/gl/**.cpp",
+            libp3d_root .. "/pddi/metal/**.h",
+            libp3d_root .. "/pddi/metal/**.cpp",
+            libp3d_root .. "/pddi/metal/**.mm",
         }
         files {
             libp3d_root .. "/pddi/null/**.h",

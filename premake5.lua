@@ -67,6 +67,20 @@ project "rechan"
             "SDL2", "pthread", "dl", "m",
         }
 
+    filter "system:macosx"
+        architecture "arm64"
+        defines { "RC_PLATFORM_MACOS" }
+        links {
+            "Cocoa.framework",
+            "IOKit.framework",
+            "CoreFoundation.framework",
+            "CoreVideo.framework",
+            "CoreGraphics.framework",
+            "QuartzCore.framework",
+            "Metal.framework",
+            "OpenGL.framework",
+        }
+
     filter "configurations:Headless"
         defines { "NDEBUG", "RC_PLATFORM_NULL" }
         runtime "Release"
@@ -78,6 +92,13 @@ project "rechan"
 
     filter { "system:windows", "configurations:Headless" }
         removelinks { "opengl32" }
+
+    filter { "system:macosx", "configurations:Headless" }
+        removelinks {
+            "Cocoa.framework", "IOKit.framework", "CoreFoundation.framework",
+            "CoreVideo.framework", "CoreGraphics.framework", "QuartzCore.framework",
+            "Metal.framework", "OpenGL.framework",
+        }
 
     filter "configurations:Debug"
         runtime "Debug"
