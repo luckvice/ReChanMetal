@@ -37,9 +37,14 @@ the original codebase before reimplementation.
 ## Enhancements
 Beyond reconstruction, the project also introduces improvements over the original PlayStation version:
 - keyboard and mouse support  
+- gamepad support with vibration, including **DualSense/DualShock light bar** and configurable vibration strength
+- controller button-prompt styles (Xbox, Nintendo Switch and **PlayStation/DualSense**)
 - HOR+ widescreen support  
 - higher resolution rendering  
+- dynamic shadows and anti-aliasing options  
 - PC-specific settings and enhancements  
+- **Brazilian Portuguese** localization (plus English, German, French, Italian and Spanish)
+- movie subtitle support (`.srt`) and in-game save/load shortcuts  
 - general quality-of-life improvements  
 
 ## Screenshots
@@ -56,7 +61,7 @@ your own copy (`.bin` or `.iso`) in a `discimage` folder beside the executable:
 
 ```text
 rechan/
-|-- rechan.exe       # Windows (use "rechan" on Linux)
+|-- rechan.exe       # Windows (use "rechan" on Linux and macOS)
 `-- discimage/
     `-- game.bin     # or game.iso, file name doesn't matter
 ```
@@ -66,8 +71,9 @@ disc version and uses its built-in extractor to prepare the required assets.
 No separate extraction utility is needed.
 Once assets are extracted the disc image folder can be deleted.
 
-ReChan currently supports 64-bit x86 (`x86_64`) Windows and Linux. To compile
-it yourself, see the [build guide](docs/BUILDING.md).
+ReChan currently supports 64-bit x86 (`x86_64`) Windows and Linux, and Apple
+Silicon (`arm64`) macOS. On macOS the renderer uses a native Metal backend. To
+compile it yourself, see the [build guide](docs/BUILDING.md).
 
 ## Legal and Asset Notice
 
@@ -118,6 +124,10 @@ entirely. Reports are stored locally and are never uploaded automatically.
 Maintainers can verify the packaged crash handler with
 `--test-crash-reporter`. Set `RECHAN_CRASH_REPORTER_NO_DIALOG=1` when running
 that check in automation.
+
+## Changelog
+
+Notable changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 MIT License.

@@ -1,7 +1,7 @@
 # Building ReChan
 
-ReChan supports 64-bit x86 (`x86_64`) Windows and Linux. A 32-bit build is not
-supported. macOS and ARM platforms are not currently supported.
+ReChan supports 64-bit x86 (`x86_64`) Windows and Linux, and Apple Silicon
+(`arm64`) macOS. A 32-bit build is not supported.
 
 ## Clone the repository
 
@@ -62,6 +62,24 @@ sh scripts/build_linux.sh release
 If Premake is not available from your distribution, download Premake 5 and
 place the `premake5` executable either in your `PATH` or in the repository root.
 
+## macOS (Apple Silicon)
+
+### Requirements
+
+- macOS 11 or newer on an Apple Silicon (arm64) Mac
+- Xcode Command Line Tools (`xcode-select --install`)
+- Premake 5 (`brew install premake`)
+
+The macOS helper generates GNU Make files with Premake and builds the selected
+configuration (`release` recommended, or `debug`/`shipping`):
+
+```bash
+sh scripts/build_macos.sh release
+```
+
+The executable is written to `bin/rechan`. macOS uses a native Metal rendering
+backend.
+
 ## Run the game
 
 Create a `discimage` folder beside the built executable and place exactly one
@@ -69,7 +87,7 @@ legally obtained NTSC-U (`SLUS-00684`) `.bin` or `.iso` image inside it:
 
 ```text
 bin/
-|-- rechan.exe       # Windows (use "rechan" on Linux)
+|-- rechan.exe       # Windows (use "rechan" on Linux and macOS)
 `-- discimage/
     `-- game.bin
 ```
