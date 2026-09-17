@@ -208,14 +208,13 @@ static s32 death_fall_water[15] = {
 static s32 death_generic[10] = {
     115, 0, 51, 6, 30, 117, 118, 6, 60, 4
 };
-static s32 death_fall_goo[35] = {
+// PSX: death_fall_goo at 0x800D85C0; NISdoor1 starts at 0x800D85E4, so this
+// script is exactly (0x800D85E4 - 0x800D85C0) / 4 = 9 words long. It must NOT
+// absorb NISdoor1's body (or ResolveScriptAddress would return a wrong pointer
+// for the door-with-dialog script at 0x800D8640).
+static s32 death_fall_goo[9] = {
     14, kHashJackie, 69, 3, -2146597480,
-    14, kHashJackie, 69, 4, 9,
-    56, 62, kHashJackie, 5, 56,
-    58, 5, 6, -1, 6,
-    15, 56, 59, 5, 6,
-    30, 56, 63, 5, 20,
-    8, 2, 9, 116, 0
+    14, kHashJackie, 69, 4
 };
 
 // PSX: NISdoor1 at 0x800D85E4 (WORLDPTS.CPP)
@@ -2236,6 +2235,18 @@ void Director::Process() {
                 // PSX: unrecognised opcodes fall to the loop-top (def_8003C430) without
                 // advancing scriptPtr — the script blocks on the bad opcode each frame
                 // rather than desyncing by consuming one word.
+                {
+                    DirectorScriptPtrInfo info = {};
+                    const bool known = ResolveDirectorScriptPtrInfo(scriptPtr, &info);
+                    std::fprintf(stderr,
+                        "[Director] unknown opcode 0x%02X at %p ctx=[%d %d %d | %d | %d %d %d] script=%s base=0x%08X word=%d\n",
+                        static_cast<u32>(opcode), static_cast<const void*>(scriptPtr),
+                        scriptPtr ? scriptPtr[-3] : 0, scriptPtr ? scriptPtr[-2] : 0, scriptPtr ? scriptPtr[-1] : 0,
+                        scriptPtr ? scriptPtr[0] : 0,
+                        scriptPtr ? scriptPtr[1] : 0, scriptPtr ? scriptPtr[2] : 0, scriptPtr ? scriptPtr[3] : 0,
+                        known ? DirectorScriptNameFromRegionBase(info.regionVirtualBase) : "?",
+                        known ? info.regionVirtualBase : 0u, known ? info.wordOffset : -1);
+                }
                 LOG("[Director] unknown opcode 0x%02X at scriptPtr=%p", static_cast<u32>(opcode), static_cast<const void*>(scriptPtr));
                 field68 = 1;
                 break;
