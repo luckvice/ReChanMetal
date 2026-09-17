@@ -21,7 +21,11 @@ project "rechan"
     targetdir "bin"
     objdir    ("%{wks.location}/obj/" .. outputdir .. "/%{prj.name}")
     debugdir  "bin"
-    multiprocessorcompile "on"
+    -- Premake builds without an MSBuild generator have no
+    -- multiprocessorcompile field; guard it (Linux/Steam Deck).
+    if multiprocessorcompile then
+        multiprocessorcompile "on"
+    end
 
     files {
         "src/**.h",
