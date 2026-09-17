@@ -1,4 +1,6 @@
 #include "gen/model.h"
+#include <cstdio>
+#include <set>
 #include "gen/animmgr.h"
 #include "gen/animmat.h"
 #include "gen/animstruct.h"
@@ -2374,6 +2376,21 @@ void HumanoidModel::SetAnim(s32 animEnum, s32 a3, s32 force, s32 extra) {
     // PSX: early-exit if not forcing and anim already matches
     if (!force && as && as->animEnum == animEnum) {
         return;
+    }
+
+    // A non-forced request to (re)play a looping animation must not cut a
+    // one-shot animation (an attack, jump, ...) that is still playing. The
+    // fighting AI re-applies its stance loop every frame; without this guard the
+    // attack animation is only visible for a single frame, so enemies appear to
+    // stay stiff in their fighting pose while attacking.
+    if (!force && as && as->loopTypeField == ANIM_RUN_TO_LAST && as->loopCount == 0
+        && as->endFrame > 0 && as->currentFrame < as->endFrame) {
+        const bool incomingLoop = (animEnum == 1 || animEnum == 2 || animEnum == 4 || animEnum == 15
+            || animEnum == 22 || animEnum == 43 || animEnum == 45 || animEnum == 49 || animEnum == 50
+            || animEnum == 314 || animEnum == 315);
+        if (incomingLoop) {
+            return;
+        }
     }
 
     // PSX: reads thingType from backPtr + 24 (Thing::thingType)

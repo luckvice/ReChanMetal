@@ -45,6 +45,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- Enemy attack animations: a non-forced stance-loop update (`SetAnim` with
+  `force=0`) no longer interrupts a one-shot animation that is still playing.
+  The fighting AI re-applies its stance loop every frame, so attack animations
+  were visible for a single frame and enemies appeared to stay stiff in their
+  fighting pose while attacking.
 - Level 1 soft-lock: the `death_fall_goo` script was reconstructed larger than
   the original, overlapping the `NISdoor1`/`NISdoor1WithDialog` regions and
   breaking the door cutscene (player input stayed disabled forever).
