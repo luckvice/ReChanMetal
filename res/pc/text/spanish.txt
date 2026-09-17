@@ -147,6 +147,8 @@ Italiano
 
 [FE_LSPA]
 Espanol
+[FE_LPT]
+Português (Brasil)
 
 [FE_CTL]
 Configuracion de Mando
@@ -165,6 +167,10 @@ Atras
 
 [FE_CSH]
 Vibracion:
+[FE_VIB]
+Vibration
+[FE_LGT]
+Lightbar
 
 [FE_CCF]
 Configuracion:
@@ -177,6 +183,9 @@ Predeterminado (Xbox)
 
 [FE_NX]
 Nintendo Switch
+
+[FE_PS]
+PlayStation 5
 
 [FE_CSD]
 PANTALLA DE ESTADO

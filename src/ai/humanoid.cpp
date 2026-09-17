@@ -18,6 +18,7 @@
 #include "gen/control.h"
 #include "gen/colsect.h"
 #include "gen/fxp.h"
+#include "pc/controllerlight.h"
 #include "gen/scoremgr.h"
 #include "gen/time.h"
 #include "gen/world.h"
@@ -6533,6 +6534,9 @@ s32 Humanoid::ProcessFightingMoveStrikeJoint(
 
     if (victimCount > 0) {
         HandleHitShock(soundEvent);
+        if (isPlayerAttacker) {
+            ControllerLight::FlashHit();
+        }
     }
 
     Obstacle* obstacles[4] = {};

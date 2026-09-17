@@ -147,6 +147,8 @@ Italiano
 
 [FE_LSPA]
 Spagnolo
+[FE_LPT]
+Português (Brasil)
 
 [FE_CTL]
 Impostazioni Controller
@@ -165,6 +167,10 @@ Indietro
 
 [FE_CSH]
 Vibrazione:
+[FE_VIB]
+Vibration
+[FE_LGT]
+Lightbar
 
 [FE_CCF]
 Configurazione:
@@ -177,6 +183,9 @@ Predefinito (Xbox)
 
 [FE_NX]
 Nintendo Switch
+
+[FE_PS]
+PlayStation 5
 
 [FE_CSD]
 DISPLAY STATO

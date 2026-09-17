@@ -448,16 +448,23 @@ public:
 
 class glGamepad : public pddiGamepad {
 public:
+    ~glGamepad() override;
     void Poll() override;
     bool IsConnected() const override { return connected; }
     bool IsButtonDown(int button) const override;
     float GetAxis(int axis) const override;
     bool SupportsVibration() const override;
     bool SetVibration(float lowFrequency, float highFrequency) override;
+    void SetLight(unsigned char r, unsigned char g, unsigned char b) override;
 
 private:
     bool connected = false;
     bool buttons[GamepadButton::COUNT] = {};
     float axes[GamepadAxis::COUNT] = {};
     int activeJoystickId = -1;
+    float lastLow = 0.0f;
+    float lastHigh = 0.0f;
+    unsigned char lightR = 0;
+    unsigned char lightG = 0;
+    unsigned char lightB = 0;
 };

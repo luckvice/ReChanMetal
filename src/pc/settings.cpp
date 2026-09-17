@@ -285,6 +285,22 @@ static void SetShockEnabledSetting(s32 value) {
     SetShock(value ? 1 : 0);
 }
 
+static s32 GetVibrationLevelSetting() {
+    return GetVibrationLevel();
+}
+
+static void SetVibrationLevelSetting(s32 value) {
+    SetVibrationLevel(value);
+}
+
+static s32 GetLightbarEnabledSetting() {
+    return GetLightbarEnabled();
+}
+
+static void SetLightbarEnabledSetting(s32 value) {
+    SetLightbarEnabled(value);
+}
+
 static s32 GetScreenModeSetting() {
     if (g_display) {
         return g_display->GetScreenMode();
@@ -388,6 +404,8 @@ static const SettingDef kSettingDefs[] = {
     { "audio", "surround",         1, 0,   1, GetSurroundEnabledSetting, SetSurroundEnabledSetting },
     { "controls", "player_config", 0, 0,   2, GetPlayerConfigSetting, SetPlayerConfigSetting },
     { "controls", "shock",         0, 0,   1, GetShockEnabledSetting, SetShockEnabledSetting },
+    { "controls", "vibration",   100, 0, 100, GetVibrationLevelSetting, SetVibrationLevelSetting },
+    { "controls", "lightbar",      1, 0,   1, GetLightbarEnabledSetting, SetLightbarEnabledSetting },
     { "controls", "prompt_style", (s32)kDefaultControllerPromptStyle, 0, (s32)ControllerPromptStyle_Count - 1,
       GetControllerPromptStyleSetting, SetControllerPromptStyleSetting },
     { "display", "screen_mode",     2, 0,   2, GetScreenModeSetting,  SetScreenModeSetting },

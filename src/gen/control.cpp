@@ -415,6 +415,9 @@ void InputManager::InternalReset() {
 
 // PSX: gp+144 - shock enabled flag (0 on PC, no DualShock)
 static s32 g_shockEnabled = 0;
+// Vibration strength percentage (0..100).
+static s32 g_vibrationLevel = 100;
+static s32 g_lightbarEnabled = 1;
 static s32 g_actuatorFramesRemaining = 0;
 static u8 g_actuatorMotor = 0;
 static u8 g_actuatorSpeed = 0;
@@ -428,7 +431,10 @@ static bool ApplyActuatorVibration(u8 motor, u8 speed) {
     if (!g_actionInput->IsGamepadActive())
         return false;
 
-    f32 amplitude = (f32)speed / 255.0f;
+    s32 level = g_vibrationLevel;
+    if (level < 0) level = 0;
+    if (level > 100) level = 100;
+    f32 amplitude = ((f32)speed / 255.0f) * ((f32)level / 100.0f);
     f32 low = 0.0f;
     f32 high = 0.0f;
 
@@ -444,6 +450,24 @@ static bool ApplyActuatorVibration(u8 motor, u8 speed) {
 
 s32 GetShock() {
     return g_shockEnabled;
+}
+
+s32 GetVibrationLevel() {
+    return g_vibrationLevel;
+}
+
+void SetVibrationLevel(s32 percent) {
+    if (percent < 0) percent = 0;
+    if (percent > 100) percent = 100;
+    g_vibrationLevel = percent;
+}
+
+s32 GetLightbarEnabled() {
+    return g_lightbarEnabled;
+}
+
+void SetLightbarEnabled(s32 enabled) {
+    g_lightbarEnabled = enabled ? 1 : 0;
 }
 
 s32 IsDualShock() {
@@ -527,6 +551,10 @@ void Shock(ShockEnum type) {
         UpdateActuator(0);
         return;
     }
+
+    std::fprintf(stderr, "[Shock] type=%d enabled=%d padState=%d gpActive=%d\n",
+                 (s32)type, (s32)g_shockEnabled, (s32)PadGetState(0),
+                 (g_actionInput && g_actionInput->IsGamepadActive()) ? 1 : 0);
 
     if (!g_shockEnabled) {
         return;

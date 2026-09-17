@@ -147,6 +147,8 @@ Italienisch
 
 [FE_LSPA]
 Spanisch
+[FE_LPT]
+Português (Brasil)
 
 [FE_CTL]
 Controller-Einstellungen
@@ -165,6 +167,10 @@ Zurueck
 
 [FE_CSH]
 Vibration:
+[FE_VIB]
+Vibration
+[FE_LGT]
+Lightbar
 
 [FE_CCF]
 Konfiguration:
@@ -177,6 +183,9 @@ Standard (Xbox)
 
 [FE_NX]
 Nintendo Switch
+
+[FE_PS]
+PlayStation 5
 
 [FE_CSD]
 STATUSANZEIGE

@@ -74,6 +74,7 @@ namespace p3d {
     extern pddiDevice* device;
     extern pddiDisplay* display;
     extern pddiRenderContext* context;
+    extern pddiGamepad* gamepad;
     extern tInventory* inventory;
     extern PlatformInput* input;
 }

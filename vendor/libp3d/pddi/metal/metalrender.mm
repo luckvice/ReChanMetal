@@ -12,6 +12,7 @@
 #include <cstring>
 #include <cmath>
 #include <algorithm>
+#include <chrono>
 
 #include <GLFW/glfw3.h>
 #define Fixed MacFixedType
@@ -20,6 +21,8 @@
 #import <Cocoa/Cocoa.h>
 #import <QuartzCore/CAMetalLayer.h>
 #import <Metal/Metal.h>
+#include <IOKit/hid/IOHIDManager.h>
+#include <IOKit/hid/IOHIDKeys.h>
 #undef Fixed
 
 #include <imgui.h>
@@ -1160,7 +1163,182 @@ pddiDevice* pddiCreate() { return new mtDevice(); }
 
 // --- Gamepad ----------------------------------------------------------------
 
+mtGamepad::mtGamepad() = default;
+
+mtGamepad::~mtGamepad() {
+    if (hidDevice) {
+        IOHIDDeviceClose((IOHIDDeviceRef)hidDevice, kIOHIDOptionsTypeNone);
+        CFRelease((IOHIDDeviceRef)hidDevice);
+    }
+}
+
+// Sony controllers (DualSense / DualShock 4) expose rumble as an IOHID output
+// report. CoreHaptics is not usable from a plain executable on macOS
+// ("Couldn't communicate with a helper application"), so talk HID directly,
+// like SDL does.
+static int HidIntProperty(IOHIDDeviceRef device, CFStringRef key) {
+    CFTypeRef value = IOHIDDeviceGetProperty(device, key);
+    int result = 0;
+    if (value && CFGetTypeID(value) == CFNumberGetTypeID()) {
+        CFNumberGetValue((CFNumberRef)value, kCFNumberIntType, &result);
+    }
+    return result;
+}
+
+static bool HidIsBluetooth(IOHIDDeviceRef device) {
+    CFTypeRef value = IOHIDDeviceGetProperty(device, CFSTR(kIOHIDTransportKey));
+    if (value && CFGetTypeID(value) == CFStringGetTypeID()) {
+        return CFStringCompare((CFStringRef)value, CFSTR("Bluetooth"), 0) == kCFCompareEqualTo ||
+               CFStringCompare((CFStringRef)value, CFSTR("BluetoothLowEnergy"), 0) == kCFCompareEqualTo;
+    }
+    return false;
+}
+
+bool mtGamepad::EnsureHidDevice() {
+    if (hidDevice) {
+        return true;
+    }
+    if (hidLookupFailed) {
+        return false;
+    }
+
+    static IOHIDManagerRef sManager = nullptr;
+    if (!sManager) {
+        sManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
+        if (!sManager) {
+            hidLookupFailed = true;
+            return false;
+        }
+        IOHIDManagerSetDeviceMatching(sManager, nullptr);
+        IOHIDManagerOpen(sManager, kIOHIDOptionsTypeNone);
+    }
+
+    CFSetRef devices = IOHIDManagerCopyDevices(sManager);
+    if (!devices) {
+        return false;
+    }
+
+    bool found = false;
+    const CFIndex count = CFSetGetCount(devices);
+    if (count > 0) {
+        CFTypeRef* refs = (CFTypeRef*)calloc((size_t)count, sizeof(CFTypeRef));
+        CFSetGetValues(devices, (const void**)refs);
+        for (CFIndex i = 0; i < count && !found; i++) {
+            IOHIDDeviceRef device = (IOHIDDeviceRef)refs[i];
+            const int vendor = HidIntProperty(device, CFSTR(kIOHIDVendorIDKey));
+            const int product = HidIntProperty(device, CFSTR(kIOHIDProductIDKey));
+            // Sony: DualSense (0x0CE6), DualSense Edge (0x0DF2), DualShock 4 (0x05C4/0x09CC).
+            if (vendor == 0x054C && (product == 0x0CE6 || product == 0x0DF2 ||
+                                     product == 0x05C4 || product == 0x09CC)) {
+                if (IOHIDDeviceOpen(device, kIOHIDOptionsTypeNone) == kIOReturnSuccess) {
+                    hidDevice = (void*)CFRetain(device);
+                    hidProductId = (unsigned)product;
+                    vibrationSupported = true;
+                    found = true;
+                    // Enter the controller's "enhanced" report mode (SDL does this
+                    // by sending an effects report with no enable bits set).
+                    unsigned char init[48] = {};
+                    init[0] = 0x02;
+                    IOHIDDeviceSetReport(device, kIOHIDReportTypeOutput, 0x02, init, sizeof(init));
+                    std::fprintf(stderr, "mtGamepad: rumble via HID active (product 0x%04X, %s)\n",
+                                 hidProductId, HidIsBluetooth(device) ? "bluetooth" : "usb");
+                }
+            }
+        }
+        free(refs);
+    }
+    CFRelease(devices);
+    return found;
+}
+
+bool mtGamepad::SupportsVibration() const {
+    if (vibrationSupported) {
+        return true;
+    }
+    return const_cast<mtGamepad*>(this)->EnsureHidDevice();
+}
+
+void mtGamepad::SendRumbleReport() {
+    if (!hidDevice) {
+        return;
+    }
+    const unsigned char strong = (unsigned char)(rumbleLow * 255.0f);
+    const unsigned char weak = (unsigned char)(rumbleHigh * 255.0f);
+    IOHIDDeviceRef device = (IOHIDDeviceRef)hidDevice;
+
+    if (hidProductId == 0x0CE6 || hidProductId == 0x0DF2) {
+        if (HidIsBluetooth(device)) {
+            return;  // DualSense Bluetooth needs report 0x31 + CRC (not implemented)
+        }
+        unsigned char report[48] = {};
+        report[0] = 0x02;
+        report[1] = 0x03;    // enable rumble emulation + disable audio haptics
+        report[2] = 0x04;    // enable lightbar colour
+        report[3] = weak;    // right motor (high frequency)
+        report[4] = strong;  // left motor (low frequency)
+        report[45] = lightR; // lightbar R
+        report[46] = lightG; // lightbar G
+        report[47] = lightB; // lightbar B
+        IOHIDDeviceSetReport(device, kIOHIDReportTypeOutput, 0x02, report, sizeof(report));
+        return;
+    }
+
+    if (HidIsBluetooth(device)) {
+        return;  // DualShock 4 Bluetooth needs report 0x11 + CRC (not implemented)
+    }
+    unsigned char report[32] = {};
+    report[0] = 0x05;
+    report[1] = 0x01;  // enable rumble
+    report[4] = weak;
+    report[5] = strong;
+    IOHIDDeviceSetReport(device, kIOHIDReportTypeOutput, 0x05, report, sizeof(report));
+}
+
+bool mtGamepad::SetVibration(float lowFrequency, float highFrequency) {
+    if (!EnsureHidDevice()) {
+        return false;
+    }
+
+    float low = lowFrequency;
+    float high = highFrequency;
+    if (low < 0.0f) low = 0.0f;
+    if (low > 1.0f) low = 1.0f;
+    if (high < 0.0f) high = 0.0f;
+    if (high > 1.0f) high = 1.0f;
+
+    static float sLastLow = -1.0f, sLastHigh = -1.0f;
+    if (low != sLastLow || high != sLastHigh) {
+        sLastLow = low;
+        sLastHigh = high;
+        std::fprintf(stderr, "mtGamepad: vibration low=%.2f high=%.2f\n", low, high);
+    }
+
+    rumbleLow = low;
+    rumbleHigh = high;
+    SendRumbleReport();
+    return true;
+}
+
 void mtGamepad::Poll() {
+    EnsureHidDevice();
+
+    // Temporary self-test: a ~1s buzz so the rumble path can be verified
+    // without needing a specific in-game shock event.
+    static int sTestFrames = 0;
+    if (hidDevice && sTestFrames >= 0) {
+        if (sTestFrames == 0) {
+            SetVibration(0.7f, 0.0f);
+        }
+        if (++sTestFrames > 40) {
+            SetVibration(0.0f, 0.0f);
+            sTestFrames = -1;
+        }
+    }
+
+    if (rumbleLow > 0.0f || rumbleHigh > 0.0f) {
+        SendRumbleReport();
+    }
+
     connected = false;
     std::memset(buttons, 0, sizeof(buttons));
     std::memset(axes, 0, sizeof(axes));
@@ -1190,6 +1368,22 @@ bool mtGamepad::IsButtonDown(int button) const {
 float mtGamepad::GetAxis(int axis) const {
     if (axis < 0 || axis >= GamepadAxis::COUNT) return 0.0f;
     return axes[axis];
+}
+
+// DualSense / DualShock 4 light bar via the macOS GameController framework.
+// Writes are de-duplicated and rate-limited: hammering the controller's HID
+// output report every frame can starve input reports, so only update when the
+// colour actually changes and at most ~20 Hz.
+void mtGamepad::SetLight(unsigned char r, unsigned char g, unsigned char b) {
+    if (lightR == r && lightG == g && lightB == b) {
+        return;
+    }
+    lightR = r;
+    lightG = g;
+    lightB = b;
+    // The lightbar shares the controller's output report with the rumble
+    // motors, so send one combined report.
+    SendRumbleReport();
 }
 
 // --- Display ----------------------------------------------------------------

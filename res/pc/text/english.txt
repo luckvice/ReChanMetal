@@ -147,6 +147,8 @@ Italian
 
 [FE_LSPA]
 Spanish
+[FE_LPT]
+Português (Brasil)
 
 [FE_CTL]
 Controller Settings
@@ -165,6 +167,10 @@ Back
 
 [FE_CSH]
 Vibration:
+[FE_VIB]
+Vibration
+[FE_LGT]
+Lightbar
 
 [FE_CCF]
 Configuration:
@@ -177,6 +183,9 @@ Default (Xbox)
 
 [FE_NX]
 Nintendo Switch
+
+[FE_PS]
+PlayStation 5
 
 [FE_CSD]
 STATUS DISPLAY

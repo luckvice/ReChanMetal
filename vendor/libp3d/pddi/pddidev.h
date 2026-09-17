@@ -335,6 +335,13 @@ public:
     virtual float GetAxis(int axis) const = 0;
     virtual bool SupportsVibration() const = 0;
     virtual bool SetVibration(float lowFrequency, float highFrequency) = 0;
+    // Optional RGB light bar (DualSense / DualShock 4). Backends without
+    // support ignore it. Components are 0..255.
+    virtual void SetLight(unsigned char r, unsigned char g, unsigned char b) {
+        (void)r;
+        (void)g;
+        (void)b;
+    }
 };
 
 // pddiDevice - factory for all pddi objects

@@ -9,6 +9,7 @@
 #include "p3d/camera.h"
 #include "pddi/pddi.h"
 #include "pddi/pddidev.h"
+#include "pc/controllerlight.h"
 
 Display* g_display = nullptr;
 s32 Display::s_defaultScreenMode = ScreenMode_Windowed;
@@ -327,6 +328,7 @@ void Display::EndFrame() {
     ++frameCounter;
     p3d::context->EndFrame();
     p3d::display->RenderOverlay();
+    ControllerLight::Update();
 #if defined(RC_PLATFORM_SWITCH)
     DrawDebugInfo();
 #endif

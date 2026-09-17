@@ -180,6 +180,12 @@ enum ShockEnum : s32 {
 void Shock(ShockEnum type);
 void SetShock(s32 enabled);
 s32 GetShock();
+// Vibration strength percentage (0..100).
+s32 GetVibrationLevel();
+void SetVibrationLevel(s32 percent);
+// RGB lightbar enabled (0/1).
+s32 GetLightbarEnabled();
+void SetLightbarEnabled(s32 enabled);
 s32 IsDualShock();
 void SetActuator(u8 motor, u8 speed, u32 duration);
 void ClearActuator();

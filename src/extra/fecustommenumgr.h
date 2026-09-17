@@ -85,6 +85,8 @@ enum EntryBinding : u8 {
     EntryBinding_DialogVol,
     EntryBinding_Stereo,
     EntryBinding_Shock,
+    EntryBinding_Vibration,
+    EntryBinding_Lightbar,
     EntryBinding_PlayerConfig,
     EntryBinding_ControllerPromptStyle,
     EntryBinding_Language,

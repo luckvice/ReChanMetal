@@ -9,6 +9,7 @@
 #include <imgui_impl_opengl3.h>
 #include <algorithm>
 #include <cstdio>
+#include "pddi/gl/glsonyhid.h"
 #include <cstring>
 
 // Default shader GLSL
@@ -3157,9 +3158,13 @@ bool glGamepad::SupportsVibration() const {
 }
 
 bool glGamepad::SetVibration(float lowFrequency, float highFrequency) {
+    lastLow = (lowFrequency < 0.0f) ? 0.0f : (lowFrequency > 1.0f ? 1.0f : lowFrequency);
+    lastHigh = (highFrequency < 0.0f) ? 0.0f : (highFrequency > 1.0f ? 1.0f : highFrequency);
+
+    bool ok = false;
 #if defined(P3D_USE_VENDORED_SDL2)
     (void)glGamepadRumbleUpdateActive(-1, nullptr);
-    return glGamepadRumbleSet(lowFrequency, highFrequency);
+    ok = glGamepadRumbleSet(lowFrequency, highFrequency);
 #else
     const int hintIndex = (connected && activeJoystickId >= GLFW_JOYSTICK_1)
         ? (activeJoystickId - GLFW_JOYSTICK_1)
@@ -3168,12 +3173,29 @@ bool glGamepad::SetVibration(float lowFrequency, float highFrequency) {
         ? glfwGetJoystickGUID(activeJoystickId)
         : nullptr;
 
-    if (!glGamepadRumbleUpdateActive(hintIndex, guid)) {
-        return false;
+    if (glGamepadRumbleUpdateActive(hintIndex, guid)) {
+        ok = glGamepadRumbleSet(lowFrequency, highFrequency);
     }
-
-    return glGamepadRumbleSet(lowFrequency, highFrequency);
 #endif
+
+    // Keep our own HID effects report in sync: on Sony controllers it carries
+    // both the rumble motors and the lightbar, so writing it avoids the Lightbar
+    // from cancelling (or being cancelled by) SDL's rumble report.
+    glsonyhid::Send((unsigned char)(lastHigh * 255.0f), (unsigned char)(lastLow * 255.0f),
+                    lightR, lightG, lightB);
+    return ok;
+}
+
+void glGamepad::SetLight(unsigned char r, unsigned char g, unsigned char b) {
+    lightR = r;
+    lightG = g;
+    lightB = b;
+    glsonyhid::Send((unsigned char)(lastHigh * 255.0f), (unsigned char)(lastLow * 255.0f),
+                    lightR, lightG, lightB);
+}
+
+glGamepad::~glGamepad() {
+    glsonyhid::Release();
 }
 
 // Platform factory

@@ -462,17 +462,30 @@ private:
 
 class mtGamepad : public pddiGamepad {
 public:
+    mtGamepad();
+    ~mtGamepad() override;
     void Poll() override;
     bool IsConnected() const override { return connected; }
     bool IsButtonDown(int button) const override;
     float GetAxis(int axis) const override;
-    bool SupportsVibration() const override { return false; }
-    bool SetVibration(float, float) override { return false; }
+    bool SupportsVibration() const override;
+    bool SetVibration(float lowFrequency, float highFrequency) override;
+    void SetLight(unsigned char r, unsigned char g, unsigned char b) override;
 
 private:
+    bool EnsureHidDevice();
+    void SendRumbleReport();
+
     bool connected = false;
     bool buttons[GamepadButton::COUNT] = {};
     float axes[GamepadAxis::COUNT] = {};
+    void* hidDevice = nullptr;  // IOHIDDeviceRef (Sony controller)
+    unsigned int hidProductId = 0;
+    bool vibrationSupported = false;
+    bool hidLookupFailed = false;
+    float rumbleLow = 0.0f;
+    float rumbleHigh = 0.0f;
+    unsigned char lightR = 0, lightG = 0, lightB = 0;
 };
 
 // mtDevice — factory for all Metal pddi objects.

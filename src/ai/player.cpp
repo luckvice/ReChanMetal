@@ -1,4 +1,5 @@
 #include "ai/player.h"
+#include "pc/controllerlight.h"
 #include "ai/colfight.h"
 #include "ai/obstacle.h"
 #include "ai/pickup.h"
@@ -1464,6 +1465,7 @@ void Player::PlayCombatKnockDownDialog(s32 damageType) {
 // PSX: HandleHitShock__6Player15DamageTypesTags (PLAYER.CPP:5155, 0x800345B8)
 void Player::HandleHitShock(s32 damageType) {
     MARKFUNCTION(0x800345B8);
+    ControllerLight::FlashDamage();
     switch (damageType) {
         case 1:
             Shock(SHOCK_1);

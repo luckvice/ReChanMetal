@@ -20,6 +20,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `glow`, `godrays`, `dot`, `moviedenoise`, `movieupscale`, `moviesharp`).
 - GLFW Cocoa backend sources wired into the macOS build.
 - `scripts/build_macos.sh` to generate makefiles and build on macOS.
+- Controller button-prompt style for **PlayStation/DualSense** (`ps`): a
+  PlayStation glyph sheet (`controller_sheet_ps.png`) and controller overlay
+  (`controller_overlay_ps.png`), selectable in Controller Settings alongside the
+  existing Xbox (default) and Nintendo Switch styles. This is additive: the
+  default style and existing behavior are unchanged.
+- DualSense/DualShock 4 **light bar** support (macOS, via the GameController
+  framework): the colour tracks Jackie's health (green → yellow → red, pulsing
+  when critical) and flashes red whenever the player lands a hit on an enemy.
+  Exposed through a new optional `pddiGamepad::SetLight`, which is a no-op on
+  backends without support (OpenGL/Windows/Linux keep working unchanged).
+- Controller settings for the above: a **Vibration** strength slider (0–100), a
+  **Lightbar** on/off toggle and the existing **Shock** toggle. They are
+  disabled unless a rumble-capable DualSense/DualShock is connected.
+- Light bar on **Windows/Linux** (OpenGL backend): raw-HID implementation in
+  `pddi/gl/glsonyhid.{h,cpp}` (SetupAPI/hid.dll on Windows, `/sys/class/hidraw`
+  on Linux), mirroring rumble into the same effects report. USB only.
+- **Brazilian Portuguese** localization (`pt` language, `res/pc/text/portuguese.txt`).
+
+### Changed
+
+- Vibration strength is now scaled by the new vibration setting, and the light
+  bar flashes on damage in addition to landing hits.
 
 ### Changed
 

@@ -6,6 +6,7 @@
 enum ControllerPromptStyle : s32 {
     ControllerPromptStyle_Default = 0, // Xbox-style glyphs
     ControllerPromptStyle_Switch,
+    ControllerPromptStyle_PlayStation, // DualSense / PlayStation glyphs
     ControllerPromptStyle_Count,
 };
 
@@ -17,6 +18,7 @@ struct ControllerPromptStyleInfo {
 static constexpr ControllerPromptStyleInfo kControllerPromptStyles[ControllerPromptStyle_Count] = {
     { "default", "FE_DEFX" },
     { "switch",  "FE_NX" },
+    { "ps",      "FE_PS" },
 };
 
 #if defined(RC_PLATFORM_SWITCH)

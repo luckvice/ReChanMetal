@@ -529,6 +529,7 @@ static const char* GetLanguageDisplayToken(s32 index) {
         case LangFrench: return "FE_LFRE";
         case LangItalian: return "FE_LITA";
         case LangSpanish: return "FE_LSPA";
+        case LangPortuguese: return "FE_LPT";
         default: return nullptr;
     }
 }
@@ -621,6 +622,8 @@ void feCustomMenuMgr::BuildPages() {
     auto& feCtrl = AddPage(MenuPage_Controller, "FE_CTL", "Menu_Controller", MenuPage_Options, 0, false, DEF_CONTROLLER_WINDOW_W, DEF_CONTROLLER_WINDOW_H);
     SetEntries(feCtrl, {
         Toggle("FE_CSH", EntryBinding_Shock),
+        Slider("FE_VIB", EntryBinding_Vibration, 5, 0, 100),
+        Toggle("FE_LGT", EntryBinding_Lightbar),
         List("FE_CCF", EntryBinding_PlayerConfig, 1, 0, 2),
         List("FE_BPTS", EntryBinding_ControllerPromptStyle, 1, 0, ControllerPromptStyle_Count - 1),
         Button("FE_BCK", EntryEvent_Back),
@@ -2348,6 +2351,16 @@ void feCustomMenuMgr::Deactivate() {
     m_result = (s32)GameResult::ResumePlay;
 }
 
+// Shock/vibration entries only apply when a rumble-capable Sony pad
+// (DualSense/DualShock) is connected; otherwise they are disabled.
+static bool IsEntryDisabled(const Entry& e) {
+    if (e.binding != EntryBinding_Shock && e.binding != EntryBinding_Vibration &&
+        e.binding != EntryBinding_Lightbar) {
+        return false;
+    }
+    return IsDualShock() == 0;
+}
+
 void feCustomMenuMgr::MoveCursor(s32 dir) {
     const s32 prevCursor = m_cursor;
     const PageDef& pg = m_pages[m_currPage];
@@ -2358,7 +2371,8 @@ void feCustomMenuMgr::MoveCursor(s32 dir) {
     // Skip over Info entries.
     const s32 limit = pg.numEntries;
     for (s32 tries = 0; tries < limit; tries++) {
-        if (pg.entries[next].type != EntryType_Info) break;
+        const Entry& cand = pg.entries[next];
+        if (cand.type != EntryType_Info && !IsEntryDisabled(cand)) break;
         next += dir;
         if (next < 0) next = pg.numEntries - 1;
         if (next >= pg.numEntries) next = 0;
@@ -2409,6 +2423,10 @@ bool feCustomMenuMgr::InvokeLocationSelection() {
 
 void feCustomMenuMgr::Confirm() {
     const Entry* e = &m_pages[m_currPage].entries[m_cursor];
+
+    if (IsEntryDisabled(*e)) {
+        return;
+    }
 
     if (e->type == EntryType_Toggle) {
         const s32 v = GetBoundValue(*e) ? 0 : 1;
@@ -2740,6 +2758,10 @@ void feCustomMenuMgr::GoBack() {
 
 void feCustomMenuMgr::Adjust(s32 dir) {
     const Entry* e = &m_pages[m_currPage].entries[m_cursor];
+
+    if (IsEntryDisabled(*e)) {
+        return;
+    }
     if (e->binding == EntryBinding_None || dir == 0)
         return;
 
@@ -2854,6 +2876,8 @@ s32 feCustomMenuMgr::GetBoundValue(const Entry& e) const {
         case EntryBinding_DialogVol: return g_sound ? (s32)g_sound->flag1 : 100;
         case EntryBinding_Stereo: return (g_sound && g_sound->activeFlag) ? 1 : 0;
         case EntryBinding_Shock: return GetShock() ? 1 : 0;
+        case EntryBinding_Vibration: return GetVibrationLevel();
+        case EntryBinding_Lightbar: return GetLightbarEnabled() ? 1 : 0;
         case EntryBinding_PlayerConfig: return g_inputManager ? (s32)g_inputManager->GetPlayerConfig() : 0;
         case EntryBinding_ControllerPromptStyle: return ControllerPromptManager::GetStyle();
         case EntryBinding_Language: return (s32)g_customText.GetLanguage();
@@ -2918,6 +2942,16 @@ void feCustomMenuMgr::ApplyValue(const Entry& e, s32 v) {
         else {
             Shock(SHOCK_CLEAR);
         }
+    }
+    else if (e.binding == EntryBinding_Vibration) {
+        SetVibrationLevel(v);
+        if (v > 0) {
+            SetActuator(0, (u8)(v * 255 / 100), 40);
+            UpdateActuator(0);
+        }
+    }
+    else if (e.binding == EntryBinding_Lightbar) {
+        SetLightbarEnabled(v);
     }
     else if (e.binding == EntryBinding_PlayerConfig) {
         if (g_inputManager) {

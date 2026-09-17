@@ -10,6 +10,7 @@ namespace p3d {
     pddiDevice* device = nullptr;
     pddiDisplay* display = nullptr;
     pddiRenderContext* context = nullptr;
+    pddiGamepad* gamepad = nullptr;
     tInventory* inventory = nullptr;
     PlatformInput* input = nullptr;
 }
@@ -132,6 +133,7 @@ void tPlatform::SetActiveContext(tContext* ctx) {
         p3d::device = ctx->GetDevice();
         p3d::display = ctx->GetDisplay();
         p3d::context = ctx->GetContext();
+        p3d::gamepad = ctx->GetGamepad();
         p3d::inventory = ctx->GetInventory();
         p3d::input = ctx->GetInputManager();
     }
@@ -139,6 +141,7 @@ void tPlatform::SetActiveContext(tContext* ctx) {
         p3d::device = nullptr;
         p3d::display = nullptr;
         p3d::context = nullptr;
+        p3d::gamepad = nullptr;
         p3d::inventory = nullptr;
         p3d::input = nullptr;
     }

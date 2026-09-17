@@ -147,6 +147,8 @@ Italien
 
 [FE_LSPA]
 Espagnol
+[FE_LPT]
+Português (Brasil)
 
 [FE_CTL]
 Parametres Manette
@@ -165,6 +167,10 @@ Retour
 
 [FE_CSH]
 Vibrations:
+[FE_VIB]
+Vibration
+[FE_LGT]
+Lightbar
 
 [FE_CCF]
 Configuration:
@@ -177,6 +183,9 @@ Standard (Xbox)
 
 [FE_NX]
 Nintendo Switch
+
+[FE_PS]
+PlayStation 5
 
 [FE_CSD]
 AFFICHAGE ETAT
